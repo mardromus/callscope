@@ -185,7 +185,9 @@ int cs_rca_rules(const cs_analysis *a, cs_rca_result *out) {
     for (size_t k = 0; k < ne && out->n_fixes < CS_RCA_MAX_FIXES; k++) {
         const cs_finding *e = cs_vec_at(&a->findings, effects[k]);
         const cs_kb_entry *ekb = cs_kb_lookup(e->detector, e->err);
-        if (ekb && ekb != kb && strcmp(e->detector, "app.error") != 0)
+        /* symptoms' generic advice ("profile the slow function") would contradict the root */
+        if (ekb && ekb != kb && strcmp(e->detector, "app.error") != 0 &&
+            strncmp(e->detector, "fn.slow", 7) != 0 && strncmp(e->detector, "cross.", 6) != 0)
             add_line(out->fixes, &out->n_fixes, CS_RCA_MAX_FIXES, ekb->fixes[0], e);
     }
 
