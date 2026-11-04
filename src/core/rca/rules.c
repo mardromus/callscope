@@ -191,6 +191,23 @@ int cs_rca_rules(const cs_analysis *a, cs_rca_result *out) {
             add_line(out->fixes, &out->n_fixes, CS_RCA_MAX_FIXES, ekb->fixes[0], e);
     }
 
+    /* a hotspot alone is a performance note, not a failure */
+    if (strcmp(root->detector, "fn.hotspot") == 0 && max_sev <= CS_SEV_MEDIUM) {
+        int failures = 0;
+        for (size_t i = 0; i < n; i++) {
+            const cs_finding *f = cs_vec_at(&a->findings, i);
+            if (f != root && f->sev >= CS_SEV_MEDIUM) failures++;
+        }
+        if (!failures) {
+            snprintf(out->summary, sizeof out->summary,
+                     "No failures detected; most execution time is spent in %s (%.0f%%).",
+                     root->fn ? root->fn : "one function", root->value * 100.0);
+            snprintf(out->explanation, sizeof out->explanation, "%s %s", out->summary, cause);
+            out->confidence = 0.6;
+            return 0;
+        }
+    }
+
     /* summary = first sentence of the cause */
     const char *dot = strstr(cause, ". ");
     size_t slen = dot ? (size_t)(dot - cause + 1) : strlen(cause);
