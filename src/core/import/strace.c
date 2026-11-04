@@ -22,9 +22,10 @@
 
 typedef struct {
     int is_sock;
+    int pending; /* non-blocking connect in progress */
     char proto[6];
     char peer[96];
-    int64_t opened;
+    int64_t opened, conn_start;
     int64_t sent, recvd;
 } sock_state;
 
@@ -274,6 +275,22 @@ static int add(cs_strace_importer *imp, cs_event *ev) {
     return 0;
 }
 
+static int emit_pending(cs_strace_importer *imp, call_t *c, int fd, sock_state *s, const char *err) {
+    s->pending = 0;
+    cs_event ev;
+    cs_event_init(&ev, CS_EV_NET_CONNECT);
+    ev.ts = s->conn_start;
+    ev.pid = ev.tid = c->pid;
+    ev.fd = fd;
+    ev.peer = s->peer[0] ? s->peer : NULL;
+    ev.proto = s->proto;
+    ev.rc = err ? -1 : 0;
+    ev.err = err;
+    ev.err_no = cs_errno_from_name(err);
+    ev.dur = c->ts - s->conn_start;
+    return add(imp, &ev);
+}
+
 static int handle_call(cs_strace_importer *imp, call_t *c) {
     char annot[96], proto[8] = "";
     cs_event ev;
@@ -304,7 +321,11 @@ static int handle_call(cs_strace_importer *imp, call_t *c) {
             snprintf(s->proto, sizeof s->proto, "%s", proto[0] ? proto : "tcp");
         }
         parse_sockaddr(c->args, s->peer, sizeof s->peer, s->proto, sizeof s->proto);
-        if (strcmp(c->err, "EINPROGRESS") == 0) return 0; /* outcome shows up later */
+        if (strcmp(c->err, "EINPROGRESS") == 0) { /* outcome shows up later */
+            s->pending = 1;
+            s->conn_start = c->ts;
+            return 0;
+        }
         cs_event_init(&ev, CS_EV_NET_CONNECT);
         ev.ts = c->ts;
         ev.pid = ev.tid = c->pid;
@@ -337,6 +358,21 @@ static int handle_call(cs_strace_importer *imp, call_t *c) {
         return add(imp, &ev);
     }
 
+    if (strcmp(name, "getsockopt") == 0 && strstr(c->args, "SO_ERROR")) {
+        sock_state *s = sock_get(imp, c->pid, fd, 0);
+        if (!s || !s->pending) return 0;
+        const char *br = strchr(strstr(c->args, "SO_ERROR"), '[');
+        char err[32] = "";
+        if (br && br[1] == 'E') {
+            size_t k = strcspn(br + 1, "]");
+            if (k >= sizeof err) k = sizeof err - 1;
+            memcpy(err, br + 1, k);
+            err[k] = '\0';
+        }
+        if (!strcmp(err, "EINPROGRESS")) return 0;
+        return emit_pending(imp, c, fd, s, err[0] ? err : NULL);
+    }
+
     int is_send = is_one_of(name, SENDS), is_recv = is_one_of(name, RECVS);
     if (is_send || is_recv) {
         sock_state *s = sock_get(imp, c->pid, fd, annot[0] || proto[0]);
@@ -348,6 +384,9 @@ static int handle_call(cs_strace_importer *imp, call_t *c) {
             snprintf(s->peer, sizeof s->peer, "%s", annot);
         }
         if (!s->is_sock) return 0;
+        int extra = 0;
+        if (s->pending) extra = emit_pending(imp, c, fd, s, NULL); /* first I/O = connected */
+        (void)extra;
         if (!s->peer[0] && strncmp(name, "sendto", 6) == 0)
             parse_sockaddr(c->args, s->peer, sizeof s->peer, NULL, 0);
         if (c->has_rc && c->rc > 0) {

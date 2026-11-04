@@ -13,3 +13,6 @@
 [pid  4102] 14:02:14.100000 read(7<TCP:[127.0.0.1:51000->127.0.0.1:6379]>, "+PONG\r\n", 512) = 7 <0.000300>
 4100  14:02:14.200000 --- SIGSEGV {si_signo=SIGSEGV, si_code=SEGV_MAPERR, si_addr=NULL} ---
 4100  14:02:14.200100 +++ killed by SIGSEGV (core dumped) +++
+4103  14:02:15.000000 socket(AF_INET, SOCK_STREAM|SOCK_NONBLOCK, IPPROTO_TCP) = 9 <0.000010>
+4103  14:02:15.000100 connect(9, {sa_family=AF_INET, sin_port=htons(80), sin_addr=inet_addr("10.9.9.9")}, 16) = -1 EINPROGRESS (Operation now in progress) <0.000050>
+4103  14:02:15.250100 getsockopt(9, SOL_SOCKET, SO_ERROR, [ECONNREFUSED], [4]) = 0 <0.000005>

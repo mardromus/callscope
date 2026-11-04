@@ -23,8 +23,8 @@ CS_TEST(strace_import_sample_trace) {
 
     /* connect ok, send, recv, close, refused connect, close, timeout connect,
      * annotated read, SIGSEGV, exit = 10 events */
-    CS_ASSERT_EQ_INT(cs_eventlog_count(&log), 10);
-    CS_ASSERT_EQ_INT(st.lines, 15);
+    CS_ASSERT_EQ_INT(cs_eventlog_count(&log), 11);
+    CS_ASSERT_EQ_INT(st.lines, 18);
 
     const cs_event *e0 = cs_eventlog_at(&log, 0);
     CS_ASSERT_EQ_INT(e0->kind, CS_EV_NET_CONNECT);
@@ -63,6 +63,13 @@ CS_TEST(strace_import_sample_trace) {
     const cs_event *ex = cs_eventlog_at(&log, 9);
     CS_ASSERT_EQ_INT(ex->kind, CS_EV_PROC_EXIT);
     CS_ASSERT_EQ_INT(ex->rc, 128 + SIGSEGV);
+
+    /* non-blocking connect resolved through getsockopt(SO_ERROR) */
+    const cs_event *nb = cs_eventlog_at(&log, 10);
+    CS_ASSERT_EQ_INT(nb->kind, CS_EV_NET_CONNECT);
+    CS_ASSERT_EQ_STR(nb->peer, "10.9.9.9:80");
+    CS_ASSERT_EQ_STR(nb->err, "ECONNREFUSED");
+    CS_ASSERT_EQ_INT(nb->dur, 250000000);
     cs_eventlog_free(&log);
 }
 
