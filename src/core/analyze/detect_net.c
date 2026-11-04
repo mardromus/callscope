@@ -28,6 +28,8 @@ static void detect_connect_failures(cs_analysis *a) {
         if (!p->failures) continue;
         int64_t ecount;
         const char *err = cs_peerstat_top_err(p, &ecount);
+        /* glibc probes the optional nscd socket on every lookup: not a failure */
+        if (strstr(p->peer, "nscd") && err && strcmp(err, "ENOENT") == 0) continue;
         cs_severity sev = (p->failures == p->attempts && p->attempts >= 3) ? CS_SEV_CRITICAL
                                                                           : CS_SEV_HIGH;
         cs_finding *f = cs_analysis_add_finding(a, "net.connect_failure", CS_LEVEL_NETWORK, sev);
