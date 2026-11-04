@@ -1,0 +1,32 @@
+{"ts":1793813889096146967,"pid":5763,"tid":5763,"k":"proc_start","code":"trace","msg":"build/examples/orderservice --inventory 127.0.0.1:19101 --payment 127.0.0.1:19102 --requests 8 --bug-null-reply"}
+{"ts":1793813889096181189,"pid":5763,"tid":5763,"k":"fn_enter","fn":"main","addr":"0x55b73d62bb0e","depth":0}
+{"ts":1793813889096188442,"pid":5763,"tid":5763,"k":"fn_enter","fn":"handle_request","addr":"0x55b73d62ba52","depth":1}
+{"ts":1793813889096190178,"pid":5763,"tid":5763,"k":"fn_enter","fn":"parse_order","addr":"0x55b73d62b4a8","depth":2}
+{"ts":1793813889096191402,"pid":5763,"tid":5763,"k":"fn_exit","fn":"parse_order","depth":2,"dur":1224}
+{"ts":1793813889096192432,"pid":5763,"tid":5763,"k":"fn_enter","fn":"validate_order","addr":"0x55b73d62b548","depth":2}
+{"ts":1793813889096193646,"pid":5763,"tid":5763,"k":"fn_exit","fn":"validate_order","depth":2,"dur":1214}
+{"ts":1793813889096194543,"pid":5763,"tid":5763,"k":"fn_enter","fn":"reserve_inventory","addr":"0x55b73d62b59e","depth":2}
+{"ts":1793813889096195753,"pid":5763,"tid":5763,"k":"fn_enter","fn":"dial","addr":"0x55b73d62bde1","depth":3}
+{"ts":1793813889096205063,"pid":5763,"tid":5763,"k":"net_dns","host":"127.0.0.1","rc":0,"dur":5791,"msg":"127.0.0.1:19101"}
+{"ts":1793813889096302853,"pid":5763,"tid":5763,"k":"net_connect","fd":4,"proto":"tcp","peer":"127.0.0.1:19101","rc":0,"dur":82672}
+{"ts":1793813889096305825,"pid":5763,"tid":5763,"k":"fn_exit","fn":"dial","depth":3,"dur":110072}
+{"ts":1793813889096307285,"pid":5763,"tid":5763,"k":"fn_enter","fn":"roundtrip","addr":"0x55b73d62bd4c","depth":3}
+{"ts":1793813889096320838,"pid":5763,"tid":5763,"k":"net_send","fd":4,"proto":"tcp","peer":"127.0.0.1:19101","rc":15,"bytes":15,"dur":11862}
+{"ts":1793813889096464652,"pid":5763,"tid":5763,"k":"net_recv","fd":4,"proto":"tcp","peer":"127.0.0.1:19101","rc":8,"bytes":8,"dur":142058}
+{"ts":1793813889096468044,"pid":5763,"tid":5763,"k":"fn_exit","fn":"roundtrip","depth":3,"dur":160759}
+{"ts":1793813889096469575,"pid":5763,"tid":5763,"k":"net_close","fd":4,"proto":"tcp","peer":"127.0.0.1:19101","rc":0,"sent":15,"recvd":8,"dur":252446}
+{"ts":1793813889096498280,"pid":5763,"tid":5763,"k":"fn_exit","fn":"reserve_inventory","depth":2,"dur":303737}
+{"ts":1793813889096499698,"pid":5763,"tid":5763,"k":"fn_enter","fn":"charge_payment","addr":"0x55b73d62b715","depth":2}
+{"ts":1793813889096501487,"pid":5763,"tid":5763,"k":"fn_enter","fn":"dial","addr":"0x55b73d62bde1","depth":3}
+{"ts":1793813889096504237,"pid":5763,"tid":5763,"k":"net_dns","host":"127.0.0.1","rc":0,"dur":806,"msg":"127.0.0.1:19102"}
+{"ts":1793813889096549762,"pid":5763,"tid":5763,"k":"net_connect","fd":4,"proto":"tcp","peer":"127.0.0.1:19102","rc":0,"dur":38032}
+{"ts":1793813889096552575,"pid":5763,"tid":5763,"k":"fn_exit","fn":"dial","depth":3,"dur":51088}
+{"ts":1793813889096554051,"pid":5763,"tid":5763,"k":"fn_enter","fn":"roundtrip","addr":"0x55b73d62bd4c","depth":3}
+{"ts":1793813889096565356,"pid":5763,"tid":5763,"k":"net_send","fd":4,"proto":"tcp","peer":"127.0.0.1:19102","rc":16,"bytes":16,"dur":9956}
+{"ts":1793813889101836221,"pid":5763,"tid":5763,"k":"net_recv","fd":4,"proto":"tcp","peer":"127.0.0.1:19102","rc":-1,"errno":104,"err":"ECONNRESET","bytes":0,"dur":5267514}
+{"ts":1793813889101854004,"pid":5763,"tid":5763,"k":"fn_exit","fn":"roundtrip","depth":3,"dur":5299953}
+{"ts":1793813889101856328,"pid":5763,"tid":5763,"k":"net_close","fd":4,"proto":"tcp","peer":"127.0.0.1:19102","rc":0,"sent":16,"recvd":0,"dur":5345964}
+{"ts":1793813889101870554,"pid":5763,"tid":5763,"k":"fn_enter","fn":"parse_payment_response","addr":"0x55b73d62b6aa","depth":3}
+{"ts":1793813889101874187,"pid":5763,"tid":5763,"k":"fn_exit","fn":"parse_payment_response","depth":3,"dur":3633}
+{"ts":1793813889101894036,"pid":5763,"tid":5763,"k":"signal","depth":3,"sig":11,"err":"SIGSEGV","msg":"fatal signal; open frames at this point are the crash site"}
+{"ts":1793813889102111476,"pid":5763,"tid":5763,"k":"proc_exit","rc":139,"msg":"killed by signal"}
