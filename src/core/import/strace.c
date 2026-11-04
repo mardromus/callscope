@@ -23,7 +23,7 @@
 typedef struct {
     int is_sock;
     int pending; /* non-blocking connect in progress */
-    char proto[6];
+    char proto[8];
     char peer[96];
     int64_t opened, conn_start;
     int64_t sent, recvd;
