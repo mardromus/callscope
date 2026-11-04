@@ -1,0 +1,26 @@
+# build output
+/build/
+/build-*/
+/out/
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+
+# generated traces and reports
+*.jsonl
+!tests/data/*.jsonl
+!examples/sample-logs/*.jsonl
+callscope-report*.html
+callscope-report*.md
+/reports/
+
+# editors
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# env
+.env
