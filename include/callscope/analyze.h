@@ -33,7 +33,8 @@ typedef struct cs_frame {
     int64_t start, end;
     int64_t incl;     /* inclusive time (ns) */
     int64_t excl;     /* exclusive time: incl minus direct children */
-    int64_t net_wait; /* time spent inside network calls under this frame */
+    int64_t net_wait; /* time spent inside network calls under this frame (inclusive) */
+    int64_t net_self; /* network time of calls made directly by this frame */
     size_t parent;    /* CS_NONE for a root frame */
     size_t enter_ev, exit_ev;
     int open;         /* never returned: crash site or still running at end of trace */
@@ -61,7 +62,7 @@ size_t cs_calltree_stack_str(const cs_calltree *t, size_t idx, char *buf, size_t
 typedef struct cs_fnstat {
     const char *fn;
     int64_t calls;
-    int64_t incl_total, excl_total, net_wait_total;
+    int64_t incl_total, excl_total, net_wait_total, net_self_total;
     int64_t min, max, p50, p95, p99; /* of inclusive time per call */
     int64_t open_frames;
     int32_t max_depth;

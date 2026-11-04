@@ -58,6 +58,7 @@ int cs_fnstats_build(cs_fnstats *s, const cs_calltree *t) {
         a->st.incl_total += f->incl;
         a->st.excl_total += f->excl;
         a->st.net_wait_total += f->net_wait;
+        a->st.net_self_total += f->net_self;
         if (f->open) a->st.open_frames++;
         if (f->depth > a->st.max_depth) a->st.max_depth = f->depth;
         if (f->incl < a->st.min) a->st.min = f->incl;
