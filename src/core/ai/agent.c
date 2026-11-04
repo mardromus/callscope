@@ -496,10 +496,13 @@ int cs_rca_ai(const cs_analysis *a, const cs_ai_config *cfg, cs_rca_result *out,
         }
         cs_json_free(verdict);
         snprintf(reason, sizeof reason, "%s", why);
-        cs_json_free(root);
-        if (retried) break;
+        if (retried) {
+            cs_json_free(root);
+            break;
+        }
         retried = 1;
-        msg_add(&msgs, "assistant", content ? content : "");
+        msg_add(&msgs, "assistant", content ? content : ""); /* content lives in root */
+        cs_json_free(root);
         char fix[400];
         snprintf(fix, sizeof fix,
                  "That verdict was rejected: %s. Reply again with ONLY the JSON object, and "
