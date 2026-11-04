@@ -7,3 +7,7 @@ target_compile_definitions(callscope_tests PRIVATE
   CS_TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data")
 
 add_test(NAME unit COMMAND callscope_tests)
+
+if(TARGET callscope_cli)
+  add_test(NAME e2e COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/e2e.sh $<TARGET_FILE:callscope_cli>)
+endif()
