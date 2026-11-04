@@ -1,0 +1,15 @@
+4100  14:02:11.000100 socket(AF_INET, SOCK_STREAM|SOCK_CLOEXEC, IPPROTO_TCP) = 3 <0.000012>
+4100  14:02:11.000200 connect(3, {sa_family=AF_INET, sin_port=htons(9101), sin_addr=inet_addr("127.0.0.1")}, 16) = 0 <0.000310>
+4100  14:02:11.000600 sendto(3, "RESERVE 1001 2\n", 15, MSG_NOSIGNAL, NULL, 0) = 15 <0.000020>
+4100  14:02:11.000700 recvfrom(3, "OK 1001\n", 4096, 0, NULL, NULL) = 8 <0.004100>
+4100  14:02:11.004900 close(3) = 0 <0.000010>
+4100  14:02:11.005000 socket(AF_INET, SOCK_STREAM, IPPROTO_TCP) = 4 <0.000010>
+4100  14:02:11.005100 connect(4, {sa_family=AF_INET, sin_port=htons(9102), sin_addr=inet_addr("127.0.0.1")}, 16 <unfinished ...>
+4101  14:02:11.005150 write(1, "processing order 1001\n", 22) = 22 <0.000008>
+4100  14:02:11.006100 <... connect resumed>) = -1 ECONNREFUSED (Connection refused) <0.001000>
+4100  14:02:11.006200 close(4) = 0 <0.000005>
+4100  14:02:11.006300 socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP) = 5 <0.000010>
+4100  14:02:11.006400 connect(5, {sa_family=AF_INET6, sin6_port=htons(443), sin6_flowinfo=htonl(0), inet_pton(AF_INET6, "::1", &sin6_addr), sin6_scope_id=0}, 28) = -1 ETIMEDOUT (Connection timed out) <3.000100>
+[pid  4102] 14:02:14.100000 read(7<TCP:[127.0.0.1:51000->127.0.0.1:6379]>, "+PONG\r\n", 512) = 7 <0.000300>
+4100  14:02:14.200000 --- SIGSEGV {si_signo=SIGSEGV, si_code=SEGV_MAPERR, si_addr=NULL} ---
+4100  14:02:14.200100 +++ killed by SIGSEGV (core dumped) +++
