@@ -19,6 +19,7 @@ typedef struct {
 
 static thread_state *thread_for(cs_hashmap *threads, int32_t pid, int32_t tid,
                                 thread_state **cache, int32_t *cpid, int32_t *ctid) {
+    // cppcheck-suppress identicalInnerCondition
     if (*cache && *cpid == pid && *ctid == tid) return *cache;
     char key[32];
     snprintf(key, sizeof key, "%d:%d", pid, tid);

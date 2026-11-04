@@ -44,8 +44,9 @@ int cs_fnstats_build(cs_fnstats *s, const cs_calltree *t) {
         const cs_frame *f = cs_calltree_frame(t, i);
         void **slot = cs_hm_slot(&m, f->fn);
         if (!slot) goto oom;
-        if (!*slot) {
-            acc_t *a = calloc(1, sizeof(*a));
+        acc_t *a = *slot;
+        if (!a) {
+            a = calloc(1, sizeof(*a));
             if (!a) goto oom;
             a->st.fn = f->fn;
             a->st.min = INT64_MAX;
@@ -53,7 +54,6 @@ int cs_fnstats_build(cs_fnstats *s, const cs_calltree *t) {
             cs_vec_init(&a->durs, sizeof(int64_t));
             *slot = a;
         }
-        acc_t *a = *slot;
         a->st.calls++;
         a->st.incl_total += f->incl;
         a->st.excl_total += f->excl;

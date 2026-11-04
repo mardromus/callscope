@@ -55,6 +55,7 @@ static int find_net_lib(char *out, size_t n) {
     }
 #ifdef CALLSCOPE_NET_LIB_BUILD
     if (exists(CALLSCOPE_NET_LIB_BUILD)) {
+        // cppcheck-suppress invalidPrintfArgType_s
         snprintf(out, n, "%s", CALLSCOPE_NET_LIB_BUILD);
         return 0;
     }
