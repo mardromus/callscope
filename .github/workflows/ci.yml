@@ -1,0 +1,64 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-test:
+    name: build + test (${{ matrix.cc }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        cc: [gcc, clang]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev cmake
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_C_COMPILER=${{ matrix.cc }} -DCALLSCOPE_WERROR=ON
+      - name: Build
+        run: cmake --build build -j
+      - name: Unit + scenario tests
+        run: ctest --test-dir build --output-on-failure
+
+  sanitizers:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev cmake
+      - name: Build with ASan + UBSan
+        run: |
+          cmake -S . -B build-asan -DCALLSCOPE_SANITIZE=ON -DCMAKE_BUILD_TYPE=Debug -DCALLSCOPE_WERROR=ON
+          cmake --build build-asan -j
+      - name: Tests under sanitizers
+        run: ctest --test-dir build-asan --output-on-failure
+      - name: Analyse every sample trace under sanitizers
+        run: |
+          for f in examples/sample-logs/*.jsonl; do
+            ./build-asan/callscope report "$f" -o /tmp/r.html --md /tmp/r.md --json-out /tmp/r.json
+          done
+
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y cppcheck
+      - run: make lint
+
+  demo:
+    runs-on: ubuntu-24.04
+    needs: build-test
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev cmake
+      - run: make build
+      - name: Record real failures end to end
+        run: ./scripts/demo.sh build
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: callscope-demo-reports
+          path: demo-out/
