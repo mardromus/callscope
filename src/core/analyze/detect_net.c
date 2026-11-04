@@ -84,12 +84,11 @@ static void detect_retry_storm(cs_analysis *a) {
             }
         }
         if ((int)best_len < a->opts.retry_count) continue;
-        /* is there any backoff? compare first and last gaps */
+        /* backoff = gaps that keep growing (each at least 1.6x the previous one) */
         int backoff = 0;
-        if (best_len >= 3) {
-            int64_t g1 = ts[best_lo + 1] - ts[best_lo];
-            int64_t g2 = ts[best_lo + best_len - 1] - ts[best_lo + best_len - 2];
-            backoff = g2 > g1 * 2;
+        for (size_t k = best_lo; k + 3 < best_lo + best_len && !backoff; k++) {
+            int64_t g0 = ts[k + 1] - ts[k], g1 = ts[k + 2] - ts[k + 1], g2 = ts[k + 3] - ts[k + 2];
+            if (g0 > 0 && g1 * 10 > g0 * 16 && g2 * 10 > g1 * 16) backoff = 1;
         }
         int64_t span = ts[best_lo + best_len - 1] - ts[best_lo];
         cs_finding *f = cs_analysis_add_finding(a, "net.retry_storm", CS_LEVEL_NETWORK,
