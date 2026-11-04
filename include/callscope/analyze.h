@@ -163,6 +163,7 @@ const char *cs_level_name(cs_level l);
 typedef struct cs_analyze_opts {
     int64_t slow_min_ns;    /* a call must take at least this long to be "slow" (50 ms) */
     double slow_factor;     /* ...and this many times its function's median (5x) */
+    int64_t slow_abs_ns;    /* calls at least this long are always slow (1 s) */
     int recursion_limit;    /* same function this many times on one stack (128) */
     int64_t net_slow_ns;    /* connect or single I/O slower than this (300 ms) */
     int retry_count;        /* failed connects to one peer inside the window (4) */

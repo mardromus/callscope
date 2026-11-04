@@ -104,9 +104,6 @@ static void detect_recursion(cs_analysis *a) {
                                                                          : CS_SEV_HIGH);
         if (!f) break;
         cs_finding_set_frame(a, f, idx);
-        /* the full path is hundreds of frames of the same name: summarise it */
-        snprintf(f->stack, sizeof f->stack, "%s > ... (%d nested calls) ... > %s", "...", same,
-                 fr->fn);
         f->value = same;
         f->threshold = limit;
         f->count = same;
@@ -157,6 +154,7 @@ static void detect_slow(cs_analysis *a) {
         const cs_fnstat *st = order[i];
         if (st->max < a->opts.slow_min_ns) break;
         int64_t limit = (int64_t)(a->opts.slow_factor * (double)st->p50);
+        if (limit > a->opts.slow_abs_ns) limit = a->opts.slow_abs_ns; /* slow is slow */
         if (limit < a->opts.slow_min_ns) limit = a->opts.slow_min_ns;
         if (st->calls >= 3 && st->max < limit) continue;
         if (st->open_frames == st->calls) continue; /* covered by crash / hang */
@@ -202,33 +200,43 @@ static void detect_slow(cs_analysis *a) {
 
 static void detect_hotspot(cs_analysis *a) {
     if (!a->fns.stats.len || a->fns.total_excl <= 0) return;
-    /* CPU-side time = exclusive time minus time blocked in network syscalls */
+    /* Own time = exclusive time minus time blocked in traced network calls.
+     * Dispatchers and loops (many children per call) are skipped: their own
+     * time is mostly idle waiting between the calls they make. */
     int64_t total = 0;
     for (size_t i = 0; i < a->fns.stats.len; i++) {
         const cs_fnstat *st = cs_vec_at(&a->fns.stats, i);
-        int64_t cpu = st->excl_total - st->net_self_total;
-        if (cpu > 0) total += cpu;
+        int64_t own = st->excl_total - st->net_self_total;
+        if (own > 0) total += own;
     }
     if (total < 10 * CS_NS_PER_MS) return;
-    for (size_t i = 0; i < a->fns.stats.len && i < 5; i++) {
+    for (size_t i = 0; i < a->fns.stats.len && i < 8; i++) {
         const cs_fnstat *st = cs_vec_at(&a->fns.stats, i);
-        int64_t cpu = st->excl_total - st->net_self_total;
-        double share = (double)cpu / (double)total;
+        int64_t children = 0;
+        for (size_t k = 0; k < a->tree.frames.len; k++) {
+            const cs_frame *fr = cs_calltree_frame(&a->tree, k);
+            if (fr->fn == st->fn) children += fr->n_children;
+        }
+        if (children * 2 > st->calls) continue; /* not a leaf-like function */
+        int64_t own = st->excl_total - st->net_self_total;
+        double share = (double)own / (double)total;
         if (share < a->opts.hotspot_share) continue;
-        cs_finding *f = cs_analysis_add_finding(a, "fn.hotspot", CS_LEVEL_FUNCTION, CS_SEV_LOW);
+        cs_finding *f = cs_analysis_add_finding(a, "fn.hotspot", CS_LEVEL_FUNCTION,
+                                                share >= 0.6 ? CS_SEV_MEDIUM : CS_SEV_LOW);
         if (!f) return;
         cs_finding_set_frame(a, f, st->slowest_frame);
         f->value = share;
         f->threshold = a->opts.hotspot_share;
         f->count = st->calls;
-        char d[32];
-        snprintf(f->title, sizeof f->title, "Hotspot: %s uses %.0f%% of compute time (%s)", st->fn,
-                 share * 100.0, cs_fmt_dur(cpu, d, sizeof d));
+        char d[32], p50[32];
+        snprintf(f->title, sizeof f->title, "Hotspot: %s holds %.0f%% of execution time (%s)",
+                 st->fn, share * 100.0, cs_fmt_dur(own, d, sizeof d));
         snprintf(f->detail, sizeof f->detail,
-                 "%s ran %lld times and accounts for %.0f%% of the time spent executing code "
-                 "(excluding time blocked on the network). Optimising or caching it gives the "
-                 "biggest speed-up.",
-                 st->fn, (long long)st->calls, share * 100.0);
+                 "%s ran %lld times (median %s per call) and spends that time in its own code, "
+                 "not in callees or network calls. That is CPU work, or blocking the tracer "
+                 "cannot see (sleep, locks, disk). Optimising, caching or moving it off the "
+                 "request path gives the biggest speed-up.",
+                 st->fn, (long long)st->calls, cs_fmt_dur(st->p50, p50, sizeof p50));
         return;
     }
 }

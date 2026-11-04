@@ -10,6 +10,7 @@ void cs_findings_finalize(cs_analysis *a);
 void cs_analyze_opts_default(cs_analyze_opts *o) {
     o->slow_min_ns = 50 * CS_NS_PER_MS;
     o->slow_factor = 5.0;
+    o->slow_abs_ns = CS_NS_PER_S;
     o->recursion_limit = 128;
     o->net_slow_ns = 300 * CS_NS_PER_MS;
     o->retry_count = 4;
