@@ -166,27 +166,39 @@ const cs_frame *cs_calltree_frame(const cs_calltree *t, size_t idx) {
 size_t cs_calltree_stack_str(const cs_calltree *t, size_t idx, char *buf, size_t n) {
     if (!n) return 0;
     buf[0] = '\0';
-    const char *names[64];
+    /* collect run-length encoded names, innermost first:
+     * deep recursion becomes "render_template (x300)" */
+    enum { MAX_RUNS = 48 };
+    const char *names[MAX_RUNS];
+    size_t counts[MAX_RUNS];
     size_t k = 0;
     int truncated = 0;
     for (size_t f = idx; f != CS_NONE; f = cs_calltree_frame(t, f)->parent) {
-        if (k == 64) {
+        const char *fn = cs_calltree_frame(t, f)->fn;
+        if (k && names[k - 1] == fn) {
+            counts[k - 1]++;
+            continue;
+        }
+        if (k == MAX_RUNS) {
             truncated = 1;
             break;
         }
-        names[k++] = cs_calltree_frame(t, f)->fn;
+        names[k] = fn;
+        counts[k] = 1;
+        k++;
     }
     size_t len = 0;
     if (truncated) len += (size_t)snprintf(buf, n, "... > ");
     for (size_t i = k; i-- > 0 && len < n;) {
-        int w = snprintf(buf + len, n - len, "%s%s", names[i], i ? " > " : "");
+        int w = counts[i] > 1
+                    ? snprintf(buf + len, n - len, "%s (x%zu)%s", names[i], counts[i], i ? " > " : "")
+                    : snprintf(buf + len, n - len, "%s%s", names[i], i ? " > " : "");
         if (w < 0) break;
         len += (size_t)w;
     }
     if (len >= n) {
-        /* keep the innermost frames, which matter most */
         len = n - 1;
-        if (n > 4) memcpy(buf, "...", 3);
+        if (n > 4) memcpy(buf + n - 4, "...", 3);
     }
     return len;
 }
