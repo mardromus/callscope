@@ -60,8 +60,8 @@ CS_TEST(eventlog_loads_sorts_and_counts) {
         "",
         "{\"ts\":100,\"pid\":1,\"tid\":1,\"k\":\"fn_enter\",\"fn\":\"main\",\"depth\":0}",
         "not json at all",
-        "{\"ts\":200,\"pid\":1,\"tid\":1,\"k\":\"net_connect\",\"fd\":3,\"peer\":\"10.0.0.1:80\","
-        "\"rc\":-1,\"err\":\"ECONNREFUSED\"}",
+        ("{\"ts\":200,\"pid\":1,\"tid\":1,\"k\":\"net_connect\",\"fd\":3,\"peer\":\"10.0.0.1:80\","
+         "\"rc\":-1,\"err\":\"ECONNREFUSED\"}"),
     };
     size_t bad = 0;
     for (size_t i = 0; i < sizeof lines / sizeof lines[0]; i++)

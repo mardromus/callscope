@@ -23,7 +23,7 @@ int cs_sb_append(cs_strbuf *sb, const char *s);
 int cs_sb_appendn(cs_strbuf *sb, const char *s, size_t n);
 int cs_sb_appendc(cs_strbuf *sb, char c);
 int cs_sb_appendf(cs_strbuf *sb, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
-int cs_sb_vappendf(cs_strbuf *sb, const char *fmt, va_list ap);
+int cs_sb_vappendf(cs_strbuf *sb, const char *fmt, va_list ap) __attribute__((format(printf, 2, 0)));
 /* Append s with HTML special characters escaped. */
 int cs_sb_append_html(cs_strbuf *sb, const char *s);
 /* Return the buffer (or "" if empty). Never NULL. */

@@ -97,8 +97,8 @@ void cs_rt_proc_start(const char *component) {
     cs_rt_emit(&ev);
 }
 
-static void CS_NOINSTR emit_app(cs_event_kind kind, const char *code, const char *fmt,
-                                va_list ap) {
+__attribute__((format(printf, 3, 0))) static void CS_NOINSTR emit_app(cs_event_kind kind, const char *code,
+                                                                       const char *fmt, va_list ap) {
     char msg[1024];
     vsnprintf(msg, sizeof msg, fmt, ap);
     cs_event ev;
